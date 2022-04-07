@@ -1,0 +1,42 @@
+no invalidation:
+  const { mutateAsync, isLoading } = useMutation(
+    async (id: string) => {
+      const deletedId = (await axios.delete<string>(`http://127.0.0.1:3001/api/employees/${id}`)).data
+      return deletedId
+    })
+
+with invalidation:
+  const { mutateAsync, isLoading } = useMutation(
+    async (id: string) => {
+      const deletedId = (await axios.delete<string>(`http://127.0.0.1:3001/api/employees/${id}`)).data
+      return deletedId
+    },
+    {
+      onSuccess: async () => {
+        await queryClient.invalidateQueries('employees')
+      }
+    }
+  )
+
+
+
+
+optimistic updating:
+
+  const { mutateAsync, isLoading } = useMutation(
+    async (id: string) => {
+      const deletedId = (await axios.delete<string>(`http://127.0.0.1:3001/api/employees/${id}`)).data
+      return deletedId
+    },
+    {
+      onMutate: (variables) => {
+        queryClient.cancelQueries(['employees']);
+        let previousValues = queryClient.getQueryData<PageData<Employee[]>>(['employees', { limit, skip }])
+        if (previousValues) {
+          let currentPage = previousValues.data.filter(x => x.id !== employee.id)
+          queryClient.setQueryData<PageData<Employee[]>>(['employees', { limit, skip }], { ...previousValues, data: currentPage })
+        }
+        queryClient.invalidateQueries('employees')
+      },
+    })
+
