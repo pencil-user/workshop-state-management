@@ -29,7 +29,3 @@ export const useStore = create<globalState>(set => ({
     }
   }
 }))
-
-export const useDerivedStore = create(set=>({
-  DerivedNumbersList: ()=>{ return useStore.getState().NumbersList.filter((x)=>x<useStore.getState().FilterUp) }
-}))
